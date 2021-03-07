@@ -23,6 +23,9 @@ class FSM(object):
     def __iter__(self):
         return iter(self.context)
 
+    def pop(self, key):
+        return self.context.pop(key)
+
     def config(self, config):
         for sequence in config:
             multi = len(sequence) > 1
