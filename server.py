@@ -27,8 +27,8 @@ def run():
             result = fsm.call()
             data = fsm['data']
             if 'msg' in fsm:
-                msg += fsm['msg']
-                log.info('SOCK RECEIVE', 'msg')
+                msg = fsm.pop('msg')
+                log.info('SOCK RECEIVE', msg)
 
             if result == 'end':
                 break
@@ -37,10 +37,10 @@ def run():
                 data += conn.recv(4).decode()
                 fsm.update({'data': data})          
         
-    
-        while len(msg):
-            sent = conn.send(msg.encode())
-            msg = msg[sent:]
+        for msg in units:
+            while len(msg):
+                sent = conn.send(msg.encode())
+                msg = msg[sent:]
                 
     except KeyboardInterrupt:
         pass

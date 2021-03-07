@@ -23,7 +23,7 @@ class Sefinalum(FSM):
         
         self.config([['parse']] + [sequence + ['parse'] for sequence in config] + [['end']])
         
-    def parse(self, data, end, **ctx):
+    def parse(self, data, end, cache, **ctx):
         try:
             idx = data.index(';')
             tokens = data[:idx].split(' ')
@@ -32,7 +32,7 @@ class Sefinalum(FSM):
             
             self.shift(command)
             
-            ctx = {'data': data, 'idx': idx, 'tokens': tokens, 'end': end}
+            ctx = {'data': data, 'idx': idx, 'tokens': tokens, 'end': end, 'cache': cache}
             self.reset(ctx)
             
             return True
@@ -55,8 +55,9 @@ class Sefinalum(FSM):
         if len(data[idx+1:]) >= size:
             msg = data[idx+1:idz]
             data = data[idz:]
+            cache += [msg]
             self.shift('parse')
-            self.update({'data':data, 'cache': cache + [msg]})
+            self.update({'data':data, 'cache': cache, 'msg': msg})
             return True
         return False
 
