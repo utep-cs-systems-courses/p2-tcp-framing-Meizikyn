@@ -4,22 +4,22 @@ class Logger(object):
     def __init__(self, level=0):
         self.level = level
         if level < 4:
-            self.debug = null
+            self.debug = self.null
 
         if level < 3:
-            self.info = null
+            self.info = self.null
 
         if level < 2:
-            self.warning = null
+            self.warning = self.null
             
         if level < 1:
-            self.error = null
+            self.error = self.null
 
-    def null(self, **kwargs):
+    def null(self, *args, **kwargs):
         pass
 
     def base(self, event, msg, moniker):
-        os.write(2, f'[{moniker*2}] ({event}) :: {msg}\n')
+        os.write(2, f'[{moniker*2}] ({event}) :: {msg}\n'.encode())
         sys.stderr.flush()
 
     def debug(self, event, msg):
