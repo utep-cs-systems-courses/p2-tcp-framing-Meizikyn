@@ -38,11 +38,6 @@ def run():
             elif header == 'end':
                 log.info('SEQ END', 'End command received')
                 break
-
-        for msg in units:
-            while len(msg):
-                sent = conn.send(msg)
-                msg = msg[sent:]
                 
     except KeyboardInterrupt:
         pass
