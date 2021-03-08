@@ -24,21 +24,21 @@ def run():
         fsm.update({'data': data, 'end': 'end', 'store': units})
         while True:
     
-            result = fsm.call()
+            header = fsm.call()
             data = fsm['data']
             if 'msg' in fsm:
                 msg = fsm.pop('msg')
                 log.info('SOCK RECEIVE', "bin")
                 os.write(1, msg)
 
-            if result == 'end':
-                log.info('SEQ END', 'End command received')
-                break
-
-            elif result == False:
+            if not header:
                 data += conn.recv(4)
                 fsm.update({'data': data})          
         
+            elif header == 'end':
+                log.info('SEQ END', 'End command received')
+                break
+
         for msg in units:
             while len(msg):
                 sent = conn.send(msg)
