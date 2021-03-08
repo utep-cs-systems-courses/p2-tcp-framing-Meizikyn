@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import socket, sys, re    
+import socket, os, sys, re    
 from sefinalum import Sefinalum
 from logger import Logger
 
@@ -20,32 +20,34 @@ def run():
         units = []
         fsm = Sefinalum()
     
-        data = conn.recv(4).decode()
-        fsm.update({'data': data, 'end': 'end', 'cache': units})
+        data = conn.recv(4)
+        fsm.update({'data': data, 'end': 'end', 'store': units})
         while True:
     
             result = fsm.call()
             data = fsm['data']
             if 'msg' in fsm:
                 msg = fsm.pop('msg')
-                log.info('SOCK RECEIVE', msg)
+                log.info('SOCK RECEIVE', "bin")
+                os.write(1, msg)
 
             if result == 'end':
+                log.info('SEQ END', 'End command received')
                 break
 
             elif result == False:
-                data += conn.recv(4).decode()
+                data += conn.recv(4)
                 fsm.update({'data': data})          
         
         for msg in units:
             while len(msg):
-                sent = conn.send(msg.encode())
+                sent = conn.send(msg)
                 msg = msg[sent:]
                 
     except KeyboardInterrupt:
         pass
             
-    conn.shutdown(socket.SHUT_WR)
+    #conn.shutdown(socket.SHUT_WR)
     conn.close()
 
 if __name__ == '__main__':

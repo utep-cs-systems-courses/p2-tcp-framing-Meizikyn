@@ -18,46 +18,46 @@ class Sefinalum(FSM):
         super().__init__(*args, **kwargs)
         
         config = [
-            ['size', 'msg']
+            ['bin', 'extract']
         ]
         
-        self.config([['parse']] + [sequence + ['parse'] for sequence in config] + [['end']])
-        
-    def parse(self, data, end, cache, **ctx):
+        self.config([['start']] + [sequence + ['start'] for sequence in config] + [['end']])
+
+    def start(self, data, end, store, **ctx):
         try:
-            idx = data.index(';')
-            tokens = data[:idx].split(' ')
-            command = tokens[0]
+            idx = data.index(b';')
+            tokens = data[:idx].split(b' ')
+            command = tokens[0].decode()
             self.log.debug('PARSE COMMAND', command)
             
             self.shift(command)
             
-            ctx = {'data': data, 'idx': idx, 'tokens': tokens, 'end': end, 'cache': cache}
+            ctx = {'data': data, 'idx': idx, 'tokens': tokens, 'end': end, 'store': store}
             self.reset(ctx)
             
             return True
         except ValueError:
             return False
 
-    def size(self, idx, tokens, **ctx):
+    def bin(self, idx, tokens, **ctx):
         size = int(tokens[1])
         idz = size + idx + 1
         self.log.debug('SIZE/FINAL IDX', f'{size} / {idz}')
 
-        self.shift('msg')
+        self.shift()
         
         ctx = {'size':size,'idz':idz}
         self.update(ctx)
         
         return True
 
-    def msg(self, idx, idz, data, size, cache, **ctx):
+    def extract(self, idx, idz, data, size, store, **ctx):
         if len(data[idx+1:]) >= size:
             msg = data[idx+1:idz]
             data = data[idz:]
-            cache += [msg]
-            self.shift('parse')
-            self.update({'data':data, 'cache': cache, 'msg': msg})
+            store += [msg]
+            self.shift()
+            self.update({'data':data, 'store': store, 'msg': msg})
             return True
         return False
 
