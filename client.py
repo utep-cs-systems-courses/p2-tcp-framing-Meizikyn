@@ -10,15 +10,16 @@ server_port = int(sys.argv[1])
 def run():
     with open_socket(server_host, server_port) as sock:
         
-        msg = sys.argv[2]
-        send(msg, sock)
+        with open(sys.argv[2], 'rb') as f:
+            send(f.read(), sock)
 
 
 def send(msg, sock):
-    data = f'bin {len(msg)};' + msg + end().decode()
+    data = f'bin {len(msg)};'.encode() + msg + end()
         
     while len(data):
-        sent = sock.send(data.encode())
+        sent = sock.send(data)
+        print(f'sent: {sent}')
         data = data[sent:]
 
 if __name__ == '__main__':
