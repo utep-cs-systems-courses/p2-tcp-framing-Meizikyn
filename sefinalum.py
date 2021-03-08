@@ -56,8 +56,12 @@ class Sefinalum(FSM):
             msg = data[idx+1:idz]
             data = data[idz:]
             store += [msg]
+            
             self.shift()
-            self.update({'data':data, 'store': store, 'msg': msg})
+            
+            ctx = {'data':data, 'store': store, 'msg': msg}
+            self.update(ctx)
+            
             return True
         return False
 
