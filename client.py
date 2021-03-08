@@ -7,6 +7,8 @@ from sefinalum import Sefinalum, frame, end
 server_host = '127.0.0.1'
 server_port = int(sys.argv[1])
 
+log = Logger(4)
+
 def run():
     with open_socket(server_host, server_port) as sock:
         
@@ -19,7 +21,7 @@ def send(msg, sock):
         
     while len(data):
         sent = sock.send(data)
-        print(f'sent: {sent}')
+        log.info('SEND', f'BYTES: <{sent}>')
         data = data[sent:]
 
 if __name__ == '__main__':
