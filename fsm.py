@@ -70,7 +70,7 @@ class FSM(object):
             self.log.debug('FSM SHIFT', 'FROM: <{self.current}> TO: <{to}>')
             self.current = to
             return
-        raise InvalidStateError('Shift state not in state table')
+        raise InvalidStateError(f'Shift state not in state table: {to if to else self.graph[self.current]}')
         
 
 class InvalidStateError(Exception):
