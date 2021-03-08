@@ -63,3 +63,9 @@ class Sefinalum(FSM):
 
     def end(self, end, **ctx):
         return end
+
+def frame(msg):
+    return f'bin {len(msg)};'.encode()
+
+def end():
+    return 'end;'.encode()
