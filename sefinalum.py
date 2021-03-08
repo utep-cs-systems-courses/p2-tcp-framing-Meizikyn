@@ -27,10 +27,10 @@ class Sefinalum(FSM):
         try:
             idx = data.index(b';')
             tokens = data[:idx].split(b' ')
-            command = tokens[0].decode()
-            self.log.debug('PARSE COMMAND', command)
+            header = tokens[0].decode()
+            self.log.debug('PARSE HEADER', header)
             
-            self.shift(command)
+            self.shift(header)
             
             ctx = {'data': data, 'idx': idx, 'tokens': tokens, 'end': end, 'store': store}
             self.reset(ctx)
