@@ -8,8 +8,6 @@ server_host = '127.0.0.1'
 server_port = int(sys.argv[1])
 
 def run():
-    #print('[EE] (CONNECT) :: [FATAL] Cannot establish socket connection')
-
     with open_socket(server_host, server_port) as sock:
         
         msg = sys.argv[2]
