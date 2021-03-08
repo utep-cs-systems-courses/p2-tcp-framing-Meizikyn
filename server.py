@@ -36,7 +36,7 @@ def run():
                 fsm.update({'data': data})          
         
             elif header == 'end':
-                log.info('SEQ END', 'End command received')
+                log.info('SEQ END', 'Sequence termination directive received')
                 break
                 
     except KeyboardInterrupt:
