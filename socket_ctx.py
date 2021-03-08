@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+
+import socket
+
+class open_socket(object):
+    def __init__(self, server_host, server_port):
+        self.sock = None
+        self.server_host = server_host
+        self.server_port = server_port
+        
+    def __enter__(self):
+        for addr_info in socket.getaddrinfo(self.server_host, self.server_port, socket.AF_UNSPEC, socket.SOCK_STREAM):
+            addr_family, sock_type, proto, canonical_name, sock_addr = addr_info
+            try:
+                self.sock = socket.socket(addr_family, sock_type, proto)
+                print(f'[==] (CREATE SOCKET) :: AF<{addr_family}> TYPE<{sock_type}> PROTOCOL<{proto}>')
+            except socket.error as err:
+                print('[EE] (CREATE SOCKET) :: err')
+                self.sock = None
+                continue
+            
+            try:
+                self.sock.connect(sock_addr)
+                print(f'[==] (CONNECT) :: TARGET<{sock_addr}>')
+            except socket.error as err:
+                print(f'[EE] (CONNECT) :: {err}')
+                self.sock.close()
+                self.sock = None
+                continue
+        return self
+
+    def send(self, *args, **kwargs):
+        return self.sock.send(*args, **kwargs)
+
+    def recv(self, *args, **kwargs):
+        return self.sock.recv(*args, **kwargs)
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.sock.close()
+        self.sock = None
