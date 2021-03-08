@@ -47,7 +47,6 @@ def run():
     except KeyboardInterrupt:
         pass
             
-    #conn.shutdown(socket.SHUT_WR)
     conn.close()
 
 if __name__ == '__main__':
