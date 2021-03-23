@@ -10,6 +10,7 @@
 # implements simple command interpreter and state machine
 # for framing network messages. Not very useful elsewhere.
 
+import os
 from fsm import FSM
 from logger import Logger
 
@@ -18,55 +19,72 @@ class Sefinalum(FSM):
         super().__init__(*args, **kwargs)
         
         config = [
-            ['size', 'write']
+            ['size', 'write'],
+            ['open'],
+            ['close'],
         ]
         
         self.config([['parse']] + [sequence + ['parse'] for sequence in config] + [['end']])
 
-    def parse(self, data, end, store, **ctx):
+    def parse(self, data, end, **ctx):
         try:
             idx = data.index(b';')
             tokens = data[:idx].split(b' ')
             header = tokens[0].decode()
             self.log.debug('PARSE HEADER', header)
+
+            data = data[idx+1:]
+            ctx = {'data':data,'idx':idx,'tokens':tokens,'end': end}
+            self.update(ctx)
             
             self.shift(header)
-            
-            ctx = {'data': data, 'idx': idx, 'tokens': tokens, 'end': end, 'store': store}
-            self.reset(ctx)
-            
             return True
+        
         except ValueError:
             return False
 
-    def size(self, idx, tokens, **ctx):
-        size = int(tokens[1])
-        idz = size + idx + 1
-        self.log.debug('SIZE/FINAL IDX', f'{size} / {idz}')
+    def open(self, tokens, **ctx):
+        name = tokens[1].decode()
+        fd = os.open(name, os.O_WRONLY | os.O_CREAT, 0o644)
+        self.log.info('OPEN FILE', name)
+
+        ctx = {'fd':fd,'lock':name}
+        self.update(ctx)
 
         self.shift()
+        return True
         
-        ctx = {'size':size,'idz':idz}
+    def size(self, idx, tokens, **ctx):
+        size = int(tokens[1])
+        self.log.debug('SIZE', f'{size}')
+
+        ctx = {'size':size}
         self.update(ctx)
         
+        self.shift()
         return True
 
-    def write(self, idx, idz, data, size, store, **ctx):
-        if len(data[idx+1:]) >= size:
-            msg = data[idx+1:idz]
-            data = data[idz:]
-            store += [msg]
+    def write(self, data, size, fd, **ctx):
+        if len(data) >= size:
+            msg = data[:size]
+            data = data[size:]
+            os.write(fd, msg)
             
-            self.shift()
-            
-            ctx = {'data':data, 'store': store, 'msg': msg}
+            ctx = {'data':data,'msg':msg}
             self.update(ctx)
             
+            self.shift()           
             return True
         return False
 
-    def close(self, close, **ctx):
-        return close
+    def close(self, fd, data, end, **ctx):
+        os.close(fd)
+
+        ctx = {'data':data,'end':end}
+        self.reset(ctx)
+        
+        self.shift()
+        return True
 
     def end(self, end, **ctx):
         return end
@@ -74,8 +92,8 @@ class Sefinalum(FSM):
 class frame(object):
 
     @staticmethod
-    def open(mode, name):
-        return f'open {mode} {name};'.encode()
+    def open(name):
+        return f'open {name};'.encode()
     
     @staticmethod
     def write(msg):

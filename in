@@ -9,9 +9,19 @@ log = Logger(4)
 def run(dst_host, dst_port):
     with open_socket(dst_host, dst_port) as sock:
 
+        data = frame.open('sh')
+        while len(data):
+            sent = sock.send(data)
+            data = data[sent:]
+
         while (data := os.read(0, 1024)) != b'':
             send(data, sock)
 
+        data = frame.close()
+        while len(data):
+            sent = sock.send(data)
+            data = data[sent:]
+            
         data = frame.end()
         while len(data):
             sent = sock.send(data)

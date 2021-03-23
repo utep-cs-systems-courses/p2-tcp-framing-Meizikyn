@@ -29,7 +29,6 @@ def run():
             if 'msg' in fsm:
                 msg = fsm.pop('msg')
                 log.info('SOCK RECEIVE', "size")
-                os.write(1, msg)
 
             if not header:
                 data += conn.recv(4)
