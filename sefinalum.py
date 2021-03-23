@@ -38,10 +38,9 @@ class Sefinalum(FSM):
             self.update(ctx)
             
             self.shift(header)
-            return True
         
         except ValueError:
-            return False
+            return True
 
     def open(self, tokens, **ctx):
         name = tokens[1].decode()
@@ -52,7 +51,6 @@ class Sefinalum(FSM):
         self.update(ctx)
 
         self.shift()
-        return True
         
     def size(self, idx, tokens, **ctx):
         size = int(tokens[1])
@@ -62,7 +60,6 @@ class Sefinalum(FSM):
         self.update(ctx)
         
         self.shift()
-        return True
 
     def write(self, data, size, fd, **ctx):
         if len(data) >= size:
@@ -74,8 +71,7 @@ class Sefinalum(FSM):
             self.update(ctx)
             
             self.shift()           
-            return True
-        return False
+        return True
 
     def close(self, fd, data, end, **ctx):
         os.close(fd)

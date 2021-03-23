@@ -24,20 +24,20 @@ def run():
         fsm.update({'data': data, 'end': 'end', 'store': units})
         while True:
     
-            header = fsm.call()
+            status = fsm.call()
             data = fsm['data']
             if 'msg' in fsm:
                 msg = fsm.pop('msg')
                 log.info('SOCK RECEIVE', "size")
 
-            if not header:
-                data += conn.recv(4)
-                fsm.update({'data': data})          
-        
-            elif header == 'end':
+            if status == 'end':
                 log.info('SEQ END', 'Sequence termination directive received')
                 break
                 
+            elif status:
+                data += conn.recv(4)
+                fsm.update({'data': data})          
+        
     except KeyboardInterrupt:
         pass
             
