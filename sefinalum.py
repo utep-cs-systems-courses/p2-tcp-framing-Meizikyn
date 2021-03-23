@@ -18,12 +18,12 @@ class Sefinalum(FSM):
         super().__init__(*args, **kwargs)
         
         config = [
-            ['bin', 'extract']
+            ['size', 'write']
         ]
         
-        self.config([['start']] + [sequence + ['start'] for sequence in config] + [['end']])
+        self.config([['parse']] + [sequence + ['parse'] for sequence in config] + [['end']])
 
-    def start(self, data, end, store, **ctx):
+    def parse(self, data, end, store, **ctx):
         try:
             idx = data.index(b';')
             tokens = data[:idx].split(b' ')
@@ -39,7 +39,7 @@ class Sefinalum(FSM):
         except ValueError:
             return False
 
-    def bin(self, idx, tokens, **ctx):
+    def size(self, idx, tokens, **ctx):
         size = int(tokens[1])
         idz = size + idx + 1
         self.log.debug('SIZE/FINAL IDX', f'{size} / {idz}')
@@ -51,7 +51,7 @@ class Sefinalum(FSM):
         
         return True
 
-    def extract(self, idx, idz, data, size, store, **ctx):
+    def write(self, idx, idz, data, size, store, **ctx):
         if len(data[idx+1:]) >= size:
             msg = data[idx+1:idz]
             data = data[idz:]
@@ -65,11 +65,25 @@ class Sefinalum(FSM):
             return True
         return False
 
+    def close(self, close, **ctx):
+        return close
+
     def end(self, end, **ctx):
         return end
 
-def frame(msg):
-    return f'bin {len(msg)};'.encode()
+class frame(object):
 
-def end():
-    return 'end;'.encode()
+    @staticmethod
+    def open(mode, name):
+        return f'open {mode} {name};'.encode()
+    
+    @staticmethod
+    def write(msg):
+        return f'size {len(msg)};'.encode() + msg
+
+    @staticmethod
+    def close():
+        return 'close;'.encode()
+
+    def end():
+        return 'end;'.encode()

@@ -2,7 +2,7 @@
 import socket, os, sys, re
 from logger import Logger
 from socket_ctx import open_socket
-from sefinalum import Sefinalum, frame, end
+from sefinalum import Sefinalum, frame
 
 log = Logger(4)
 
@@ -12,13 +12,13 @@ def run(dst_host, dst_port):
         while (data := os.read(0, 1024)) != b'':
             send(data, sock)
 
-        data = end()
+        data = frame.end()
         while len(data):
             sent = sock.send(data)
             data = data[sent:]
 
 def send(msg, sock):
-    data = f'bin {len(msg)};'.encode() + msg
+    data = frame.write(msg)
         
     while len(data):
         sent = sock.send(data)
