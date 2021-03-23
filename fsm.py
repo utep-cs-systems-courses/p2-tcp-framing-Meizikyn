@@ -63,11 +63,11 @@ class FSM(object):
 
     def shift(self, to=None):
         if not to and self.graph[self.current]:
-            self.log.debug('FSM SHIFT', 'FROM: <{self.current}> TO: <{to}>')
+            self.log.debug('FSM SHIFT', f'FROM: <{self.current}> TO: <{to}>')
             self.current = self.graph[self.current]
             return
         if to in self.graph:
-            self.log.debug('FSM SHIFT', 'FROM: <{self.current}> TO: <{to}>')
+            self.log.debug('FSM SHIFT', f'FROM: <{self.current}> TO: <{to}>')
             self.current = to
             return
         raise InvalidStateError(f'Shift state not in state table: {to if to else self.graph[self.current]}')
