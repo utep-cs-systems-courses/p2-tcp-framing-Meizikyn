@@ -17,11 +17,10 @@ def run():
         log.info('SOCK ACCEPT', f'ADDR: <{addr}>')
         
     
-        units = []
-        fsm = Sefinalum(4)
+        fsm = Sefinalum(3)
     
         data = conn.recv(256)
-        fsm.update({'data': data, 'end': 'end', 'store': units})
+        fsm.update({'data': data, 'end': 'end'})
         while True:
     
             status = fsm.call()
