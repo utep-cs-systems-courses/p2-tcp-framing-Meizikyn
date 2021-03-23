@@ -62,16 +62,26 @@ class Sefinalum(FSM):
         self.shift()
 
     def write(self, data, size, fd, **ctx):
+        shift = False
         if len(data) >= size:
-            msg = data[:size]
+            output = data[:size]
             data = data[size:]
-            os.write(fd, msg)
+            shift = True
+        else:
+            size -= len(data)
+            output = data
+            data = b''
+        os.write(fd, output)
             
-            ctx = {'data':data,'msg':msg}
-            self.update(ctx)
-            
-            self.shift()           
-        return True
+        ctx = {'data':data,'size':size}
+        self.update(ctx)
+
+        if shift:
+            self.shift()
+        else:
+            return True
+        
+        
 
     def close(self, fd, data, end, **ctx):
         os.close(fd)

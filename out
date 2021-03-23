@@ -18,24 +18,23 @@ def run():
         
     
         units = []
-        fsm = Sefinalum()
+        fsm = Sefinalum(4)
     
-        data = conn.recv(4)
+        data = conn.recv(256)
         fsm.update({'data': data, 'end': 'end', 'store': units})
         while True:
     
             status = fsm.call()
             data = fsm['data']
-            if 'msg' in fsm:
-                msg = fsm.pop('msg')
-                log.info('SOCK RECEIVE', "size")
 
             if status == 'end':
                 log.info('SEQ END', 'Sequence termination directive received')
                 break
                 
             elif status:
-                data += conn.recv(4)
+                incoming = conn.recv(4)
+                data += incoming
+                log.info('SOCK RECEIVE', f'RECV/DATA SIZE: <{len(incoming)}>/<{len(data)}>')
                 fsm.update({'data': data})          
         
     except KeyboardInterrupt:

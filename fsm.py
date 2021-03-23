@@ -8,7 +8,7 @@
 from logger import Logger
 
 class FSM(object):
-    def __init__(self, auto=False, log_level=0):
+    def __init__(self, log_level=0, auto=False):
         self.auto = auto
         self.table = {}
         self.graph = {}
