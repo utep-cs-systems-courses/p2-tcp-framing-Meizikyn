@@ -51,9 +51,8 @@ class FSM(object):
         self.log.debug('FSM CONFIG', f'FROM: <{name}> TO: <{to}>')
 
     def call(self, **ctx):
-        self.log.debug('FSM CALL', f'FUNC: <{self.current}>')
-        self.context.update(ctx)
         rvalue = self.ortho()
+        self.log.debug('FSM CALL', f'FUNC: <{self.current}>')
         if self.auto:
             self.shift()
         return rvalue
@@ -63,7 +62,7 @@ class FSM(object):
 
     def shift(self, to=None):
         if not to and self.graph[self.current]:
-            self.log.debug('FSM SHIFT', f'FROM: <{self.current}> TO: <{to}>')
+            self.log.debug('FSM SHIFT', f'FROM: <{self.current}> TO: <{self.graph[self.current]}>')
             self.current = self.graph[self.current]
             return
         if to in self.graph:
