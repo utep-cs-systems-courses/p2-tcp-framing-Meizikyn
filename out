@@ -6,7 +6,6 @@ from threading import Thread, Lock
 
 log = Logger(3)
 
-#TODO Implement Threading
 def run():
 
     lock = Lock()
