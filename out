@@ -36,13 +36,13 @@ def handle_connection(conn, addr, cpool, fpool, lock):
     log.info('THREAD', 'activate')
     parser = Sefinalum(3)   
     data = conn.recv(256)
-    parser.update({'data': data, 'end': 'end', 'pool': fpool, 'lock': lock})
+    parser.update({'data': data, 'pool': fpool, 'lock': lock})
     while True:
 
         status = parser.call()
         data = parser['data']
 
-        if status == 'end':
+        if status == 'kill':
             log.info('SEQ END', 'Sequence termination directive received')
             break
 

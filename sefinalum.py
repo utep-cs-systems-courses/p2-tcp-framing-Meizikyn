@@ -24,17 +24,17 @@ class Sefinalum(FSM):
             ['close'],
         ]
         
-        self.config([['parse']] + [sequence + ['parse'] for sequence in config] + [['end']])
+        self.config([['parse']] + [sequence + ['parse'] for sequence in config] + [['kill']])
 
-    def parse(self, data, end, **ctx):
+    def parse(self, data, **ctx):
         try:
             idx = data.index(b';')
             tokens = data[:idx].split(b' ')
             header = tokens[0].decode()
+            data = data[idx+1:]
             self.log.debug('PARSE HEADER', header)
 
-            data = data[idx+1:]
-            ctx = {'data':data,'idx':idx,'tokens':tokens,'end': end}
+            ctx = {'data':data,'idx':idx,'tokens':tokens}
             self.update(ctx)
             
             self.shift(header)
@@ -99,8 +99,8 @@ class Sefinalum(FSM):
         self.shift()
         return True
 
-    def end(self, end, **ctx):
-        return end
+    def kill(self, **ctx):
+        return 'kill'
 
 class frame(object):
 
@@ -116,5 +116,5 @@ class frame(object):
     def close():
         return 'close;'.encode()
 
-    def end():
-        return 'end;'.encode()
+    def kill():
+        return 'kill;'.encode()

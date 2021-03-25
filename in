@@ -37,7 +37,7 @@ def run(dst_host, dst_port):
             sent = sock.send(data)
             data = data[sent:]
             
-        data = frame.end()
+        data = frame.kill()
         while len(data):
             sent = sock.send(data)
             data = data[sent:]
