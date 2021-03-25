@@ -4,18 +4,33 @@ from logger import Logger
 from socket_ctx import open_socket
 from sefinalum import Sefinalum, frame
 
-log = Logger(4)
+log = Logger(3)
 
 def run(dst_host, dst_port):
     with open_socket(dst_host, dst_port) as sock:
 
-        data = frame.open('sh')
+        log.info('SOCK OPEN', 'Connection established')
+
+        data = frame.open(sys.argv[1])
         while len(data):
             sent = sock.send(data)
             data = data[sent:]
 
+        #TODO Use parser to ensure msg
+        reply = b''
+        while not b';' in (reply := reply + sock.recv(1024)):
+            pass
+            
+        if not reply == b'ok;':
+            log.error('FILE ERROR', 'Destination file is currently open in another process!')
+            return
+            
+        total = 0
         while (data := os.read(0, 1024)) != b'':
-            send(data, sock)
+            total += send(data, sock)
+
+        log.info('SEND DONE', f'{total} bytes sent')
+
 
         data = frame.close()
         while len(data):
@@ -27,17 +42,23 @@ def run(dst_host, dst_port):
             sent = sock.send(data)
             data = data[sent:]
 
+    log.info('SOCK CLOSED', 'Connection terminated')
+
 def send(msg, sock):
     data = frame.write(msg)
-        
+
+    total = 0
+    
     while len(data):
-        sent = sock.send(data)
-        log.info('SEND', f'BYTES: <{sent}>')
+        total += (sent := sock.send(data))
+        log.debug('SEND', f'BYTES: <{sent}>')
         data = data[sent:]
+
+    return total
 
 if __name__ == '__main__':
 
-    dst_serv = sys.argv[1]
+    dst_serv = sys.argv[2]
     dst_tokens = dst_serv.split(':')
     dst_host = dst_tokens[0]
     dst_port = int(dst_tokens[1])

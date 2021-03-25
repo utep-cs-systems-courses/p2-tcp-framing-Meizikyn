@@ -1,7 +1,7 @@
 import os, sys
 
 class Logger(object):
-    def __init__(self, level=0):
+    def __init__(self, level=3):
         self.level = level
         if level < 4:
             self.debug = self.null

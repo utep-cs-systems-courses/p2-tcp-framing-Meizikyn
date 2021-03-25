@@ -17,7 +17,7 @@ from logger import Logger
 class Sefinalum(FSM):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+
         config = [
             ['size', 'write'],
             ['open'],
@@ -42,15 +42,24 @@ class Sefinalum(FSM):
         except ValueError:
             return True
 
-    def open(self, tokens, **ctx):
-        name = tokens[1].decode()
-        fd = os.open(name, os.O_WRONLY | os.O_CREAT, 0o644)
-        self.log.info('OPEN FILE', name)
-
-        ctx = {'fd':fd,'lock':name}
+    def open(self, tokens, pool, lock, **ctx):
+        path = tokens[1].decode()
+        with lock:
+            if path in pool:
+                ctx = {'reply':b'locked;'}
+                self.update(ctx)
+                self.shift()
+                return 'reply'
+            pool += [path]
+        
+        fd = os.open(path, os.O_WRONLY | os.O_CREAT, 0o644)
+        self.log.info('OPEN FILE', path)
+        
+        ctx = {'fd':fd,'path':path,'reply':b'ok;'}
         self.update(ctx)
 
         self.shift()
+        return 'reply'
         
     def size(self, idx, tokens, **ctx):
         size = int(tokens[1])
@@ -81,14 +90,12 @@ class Sefinalum(FSM):
         else:
             return True
         
-        
-
-    def close(self, fd, data, end, **ctx):
+    def close(self, fd, path, pool, lock, **ctx):
         os.close(fd)
+        with lock:
+            pool.remove(path)
+        self.log.info('CLOSE FILE', path)
 
-        ctx = {'data':data,'end':end}
-        self.reset(ctx)
-        
         self.shift()
         return True
 

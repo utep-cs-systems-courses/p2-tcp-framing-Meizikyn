@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
 import socket, os, sys, re    
-from sefinalum import Sefinalum
 from logger import Logger
+from sefinalum import Sefinalum
+from threading import Thread, Lock
 
-log = Logger(4)
+log = Logger(3)
 
+#TODO Implement Threading
 def run():
+
+    lock = Lock()
+    file_pool = []
+    connection_pool = []
+    
     try:
         source_addr = ''
         source_port = int(sys.argv[1])
@@ -13,33 +20,51 @@ def run():
         sock.bind((source_addr, source_port))
         sock.listen(1)
         
-        conn, addr = sock.accept()
-        log.info('SOCK ACCEPT', f'ADDR: <{addr}>')
-        
-    
-        fsm = Sefinalum(3)
-    
-        data = conn.recv(256)
-        fsm.update({'data': data, 'end': 'end'})
         while True:
-    
-            status = fsm.call()
-            data = fsm['data']
-
-            if status == 'end':
-                log.info('SEQ END', 'Sequence termination directive received')
-                break
-                
-            elif status:
-                incoming = conn.recv(4)
-                data += incoming
-                log.info('SOCK RECEIVE', f'RECV/DATA SIZE: <{len(incoming)}>/<{len(data)}>')
-                fsm.update({'data': data})          
+            conn, addr = sock.accept()
+            connection_pool += [conn]
+            log.info('SOCK ACCEPT', f'ADDR: <{addr}>')
+            Thread(target=handle_connection, args=(conn,addr,connection_pool, file_pool, lock)).start()
         
+    
     except KeyboardInterrupt:
-        pass
+        for conn in connection_pool:
+            conn.close()
             
-    conn.close()
 
+def handle_connection(conn, addr, cpool, fpool, lock):
+    log.info('THREAD', 'activate')
+    parser = Sefinalum(3)   
+    data = conn.recv(256)
+    parser.update({'data': data, 'end': 'end', 'pool': fpool, 'lock': lock})
+    while True:
+
+        status = parser.call()
+        data = parser['data']
+
+        if status == 'end':
+            log.info('SEQ END', 'Sequence termination directive received')
+            break
+
+        elif status == 'reply':
+            reject = False
+            if (msg := parser.context.pop('reply')) == b'locked;':
+                reject = True
+            while len(msg):
+                sent = conn.send(msg)
+                msg = msg[sent:]
+            if reject:
+                log.info('SOCK REJECT', 'Requested file in use')
+                break
+            
+        elif status:
+            incoming = conn.recv(4)
+            data += incoming
+            log.debug('SOCK RECEIVE', f'RECV/DATA SIZE: <{len(incoming)}>/<{len(data)}>')
+            parser.update({'data': data})
+
+    conn.close()
+    cpool.remove(conn)
+    
 if __name__ == '__main__':
     run()
